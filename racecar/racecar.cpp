@@ -1,3 +1,4 @@
+//https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/
 // C library headers
 #include <stdio.h>
 #include <string.h>
