@@ -11,6 +11,7 @@ static const int LORA_DIO1  = 14;      // DIO1 switch
 static const int LORA_BUSY  = 13; 
 static const int BUTTON     = 0;
 
+int num_sent = 0;
 // lora parameters
 
 // you can receive these packets on any LoRa receiver, as long as carrier frequency, BW, and SF are the same
@@ -18,10 +19,11 @@ static const int BUTTON     = 0;
  static const float FREQ = 902.3;
  static const float BW = 125.;
  static const uint8_t SF = 11;
- static const int8_t TX_PWR = 20;
+ static const int8_t TX_PWR = 22;
  static const uint8_t CR = 5;
  static const uint8_t SYNC_WORD = (uint8_t)0x34;
  static const uint16_t PREAMBLE = 8;
+
 
 SX1262 radio = new Module(LORA_CS, LORA_DIO1, LORA_NRST, LORA_BUSY);
 

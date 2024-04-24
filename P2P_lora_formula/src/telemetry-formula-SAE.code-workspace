@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"name": "P2P_lora_receiver_formula",
+			"path": "../../P2P_lora_receiver_formula"
+		},
+		{
+			"name": "P2P_lora_formula",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
