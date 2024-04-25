@@ -25,19 +25,20 @@ class MainWindow(QMainWindow):
         self.ttyselector.currentIndexChanged.connect(self.index_changed)
 
         layout = QVBoxLayout()
-        layout.addWidget(ttyselector)
+        layout.addWidget(self.ttyselector)
+        layout.addWidget()
 
-        combobox.currentIndexChanged.connect(self.index_changed)
+        self.ttyselector.currentIndexChanged.connect(self.index_changed)
 
         container = QWidget()
         container.setLayout(layout)
 
         self.setCentralWidget(container)
 
-        def index_changed(self, index):
-            global selected_tty_device
-            selected_tty_device = tty_devices[index]
-            print("Selected TTY device:", selected_tty_device)
+    def index_changed(self, index):
+        global selected_tty_device
+        selected_tty_device = tty_devices[index]
+        print("Selected TTY device:", selected_tty_device)
 
 app = QApplication(sys.argv)
 w = MainWindow()

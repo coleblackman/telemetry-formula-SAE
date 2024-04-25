@@ -17,7 +17,6 @@ static const int LORA_SCK   = 9;
 static const int LORA_NRST  = 12;      // Reset pin
 static const int LORA_DIO1  = 14;      // DIO1 switch
 static const int LORA_BUSY  = 13; 
-static const int BUTTON     = 0;
 
 /****************LoRa parameters (you need to fill these params)******************/
  static const float FREQ = 902.3;
@@ -28,12 +27,9 @@ static const int BUTTON     = 0;
  static const uint8_t SYNC_WORD = (uint8_t)0x34;
  static const uint16_t PREAMBLE = 8;
 
-/****************Payload******************/
-String tx_payload = "Group Nine Device 1 packet";    // change this to something unique to your group/something you want to say to each other
 
-/****************transceiver flags******************/
-volatile bool tx_flag = false;
-volatile bool rx_flag = false;
+
+bool debug_flag = false;
 
 SX1262 radio = new Module(LORA_CS, LORA_DIO1, LORA_NRST, LORA_BUSY);
 
@@ -44,16 +40,8 @@ SX1262 radio = new Module(LORA_CS, LORA_DIO1, LORA_NRST, LORA_BUSY);
 #if defined(ESP8266) || defined(ESP32)
   ICACHE_RAM_ATTR
 #endif
-void setFlag(void) {
-  // we got a packet, set the flag. However, this might cause the interrupt to be called when a transmission takes place too
-  // luckily, there is a simple fix. check if the device just transmitted. if it did, then it is probably not the rx interrupt
-  // if not, we know it is the rx interrupt and therefore can set the flag
-    rx_flag = true;
-}
 
-void buttonISR(){
-  tx_flag = true;
-}
+
 
 // It is important to remember that ISRs are supposed to be short and are mostly used for triggering flags. 
 // doing Serial.print() might fail and cause device resets. This is because Serial.print() uses interrupt to read data, 
@@ -73,130 +61,108 @@ void setup() {
   pinMode(BUTTON, INPUT);
   attachInterrupt(digitalPinToInterrupt(BUTTON), buttonISR, FALLING);
 
-  // initialize SX1262 with default settings
-  Serial.print(F("[SX1262] Initializing ... "));
+  if(debug_flag) {
+      // initialize SX1262 with default settings
+      Serial.print(F("[SX1262] Initializing ... "));
 
-  Serial.print("Frequency in MHz: ");
-  Serial.print(FREQ);
-  Serial.print("Spreading factor: ");
-  Serial.print(SF);
-  Serial.print("Bandwidth in kHz: ");
-  Serial.print(BW);
+      Serial.print("Frequency in MHz: ");
+      Serial.print(FREQ);
+      Serial.print("Spreading factor: ");
+      Serial.print(SF);
+      Serial.print("Bandwidth in kHz: ");
+      Serial.print(BW);
+  }
 
   int state = radio.begin();
-  if (state == RADIOLIB_ERR_NONE) {
+  if (state == RADIOLIB_ERR_NONE && debug_flag) {
     Serial.println(F("success!"));
   } else {
-    Serial.print(F("failed, code "));
-    Serial.println(state);
+    if(debug_flag) {
+      Serial.print(F("failed, code "));
+      Serial.println(state);
+    }
     while (true);
   }
 
   state = radio.setBandwidth(BW);
-  if (state != RADIOLIB_ERR_NONE) {
+  if (state != RADIOLIB_ERR_NONE && debug_flag) {
       error_message("BW intialization failed", state);
   }
   state = radio.setFrequency(FREQ);
-  if (state != RADIOLIB_ERR_NONE) {
+  if (state != RADIOLIB_ERR_NONE && debug_flag) {
       error_message("Frequency intialization failed", state);
   }
   state = radio.setSpreadingFactor(SF);
-  if (state != RADIOLIB_ERR_NONE) {
+  if (state != RADIOLIB_ERR_NONE && debug_flag) {
       error_message("SF intialization failed", state);
   }
   state = radio.setOutputPower(TX_PWR);
-  if (state != RADIOLIB_ERR_NONE) {
+  if (state != RADIOLIB_ERR_NONE && debug_flag) {
       error_message("Output Power intialization failed", state);
   }
  
   state = radio.setCurrentLimit(140.0);
-  if (state != RADIOLIB_ERR_NONE) {
+  if (state != RADIOLIB_ERR_NONE && debug_flag) {
       error_message("Current limit intialization failed", state);
   }
    radio.setDio1Action(setFlag);    // callback when the RF interrupt is triggered
 
-  Serial.print(F("[SX1262] Starting to listen ... "));
+  if (debug_flag)
+    Serial.print(F("[SX1262] Starting to listen ... "));
   state = radio.startReceive();
-  if (state == RADIOLIB_ERR_NONE) {
+  if (state == RADIOLIB_ERR_NONE && debug_flag) {
     Serial.println(F("success!"));
 
   } else {
-    Serial.print(F("failed, code "));
-    Serial.println(state);
+    if(debug_flag) {
+      Serial.print(F("failed, code "));
+      Serial.println(state);
+    }
     while (true);
   }
 }
 
 void loop() {
-  if (tx_flag){
-    Serial.print(F("[SX1262] Transmitting packet ... "));
-
-    // you can transmit C-string or Arduino string up to
-    // 256 characters long
-    // NOTE: transmit() is a blocking method!
-    int state = radio.transmit(tx_payload);
-
-    if (state == RADIOLIB_ERR_NONE) {
-      // the packet was successfully transmitted
-      Serial.println(F("success!"));
-
-      // print measured data rate
-      Serial.print(F("[SX1262] Datarate:\t"));
-      Serial.print(radio.getDataRate());
-      Serial.println(F(" bps"));
-
-    } else if (state == RADIOLIB_ERR_PACKET_TOO_LONG) {
-      // the supplied packet was longer than 256 bytes
-      Serial.println(F("too long!"));
-
-    } else if (state == RADIOLIB_ERR_TX_TIMEOUT) {
-      // timeout occured while transmitting packet
-      Serial.println(F("timeout!"));
-
-    } else {
-      // some other error occurred
-      Serial.print(F("failed, code "));
-      Serial.println(state);
-    }
-    tx_flag = false;
-    radio.startReceive();   // you can put a return value on this and check if the device was set to receive mode if needed
-}
-if(rx_flag) {
-    // reset flag
-    rx_flag = false;
     // you can read received data as an Arduino String
     String rx_data;
     int state = radio.readData(rx_data);
 
     if (state == RADIOLIB_ERR_NONE) {
-      // packet was successfully received
-      Serial.println(F("[SX1262] Received packet!"));
 
-      // print data of the packet
-      Serial.print(F("[SX1262] Data:\t\t"));
+      if (debug_flag) {
+        // packet was successfully received
+        Serial.println(F("[SX1262] Received packet!"));
+
+        // print data of the packet
+        Serial.print(F("[SX1262] Data:\t\t"));
+      }
       Serial.println(rx_data);
 
-      // print RSSI (Received Signal Strength Indicator)
-      Serial.print(F("[SX1262] RSSI:\t\t"));
-      Serial.print(radio.getRSSI());
-      Serial.println(F(" dBm"));
+      if (debug_flag) {
+        // print RSSI (Received Signal Strength Indicator)
+        Serial.print(F("[SX1262] RSSI:\t\t"));
+        Serial.print(radio.getRSSI());
+        Serial.println(F(" dBm"));
 
-      // print SNR (Signal-to-Noise Ratio)
-      Serial.print(F("[SX1262] SNR:\t\t"));
-      Serial.print(radio.getSNR());
-      Serial.println(F(" dB"));
+        // print SNR (Signal-to-Noise Ratio)
+        Serial.print(F("[SX1262] SNR:\t\t"));
+        Serial.print(radio.getSNR());
+        Serial.println(F(" dB"));
+      }
 
-    } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
+    } else if (state == RADIOLIB_ERR_CRC_MISMATCH && debug_flag) {
       // packet was received, but is malformed
       Serial.println(F("CRC error!"));
 
     } else {
       // some other error occurred
-      Serial.print(F("failed, code "));
-      Serial.println(state);
+      if (debug_flag) {
+        Serial.print(F("failed, code "));
+        Serial.println(state);
+      }
     }
 
     // put module back to listen mode
     radio.startReceive();
-  }
+  
 }
