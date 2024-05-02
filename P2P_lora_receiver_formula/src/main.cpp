@@ -1,4 +1,5 @@
 #include <RadioLib.h>
+#include "PacketDecoder.h"
 
 /****************Pin assignment for the Heltec V3 board******************/
 static const int LORA_CS    = 8;      // Chip select pin
@@ -80,11 +81,16 @@ void setup() {
 }
 
 void loop() {
-  String rx_data;
-  int state = radio.readData(rx_data);
+  uint8_t rx_buffer[256];
+  int16_t state = radio.readData(rx_buffer, sizeof(rx_buffer));
 
   if (state == RADIOLIB_ERR_NONE) {
-    Serial.println(rx_data);
+    // data receive was successful
+    for (size_t i = 1; i < sizeof(rx_buffer) && rx_buffer[i] != '\0'; i++) {
+      Serial.print(rx_buffer[i], HEX);
+      Serial.print(" ");
+    }
+    Serial.println();
 
     if (debug_flag) {
       Serial.print(F("[SX1262] RSSI:\t\t"));
