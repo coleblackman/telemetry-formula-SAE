@@ -1,5 +1,23 @@
 #include <RadioLib.h>
-#include "PacketDecoder.h"
+#include "../include/packetDecoder.h"
+
+/*
+
+This code module runs on the Heltec v3 board, which is a LoRa transceiver.
+
+This board needs to be connected via USB to a base station 
+
+This code sends a decoded packet (that it receives over LoRa) to the base station
+
+It uses UART over Serial over USB.
+
+
+*/
+
+
+/****************Motorsports Parameters********************/
+
+#define MAX_PACKET_SIZE 28 // This needs to equal the largest size for any packet type
 
 /****************Pin assignment for the Heltec V3 board******************/
 static const int LORA_CS    = 8;      // Chip select pin
@@ -12,7 +30,7 @@ static const int LORA_BUSY  = 13;
 /****************LoRa parameters******************/
 static const float FREQ = 902.3;  // in MHz
 static const float BW = 125.0;    // in kHz
-static const uint8_t SF = 8;
+static const uint8_t SF = 8; // Spreading factor - must be the same between sender and receiver
 static const uint8_t CR = 5;
 static const uint8_t SYNC_WORD = 0x34;
 static const uint16_t PREAMBLE = 8;
@@ -81,16 +99,30 @@ void setup() {
 }
 
 void loop() {
-  uint8_t rx_buffer[256];
+  uint8_t rx_buffer[MAX_PACKET_SIZE];
   int16_t state = radio.readData(rx_buffer, sizeof(rx_buffer));
 
   if (state == RADIOLIB_ERR_NONE) {
     // data receive was successful
-    for (size_t i = 1; i < sizeof(rx_buffer) && rx_buffer[i] != '\0'; i++) {
-      Serial.print(rx_buffer[i], HEX);
-      Serial.print(" ");
+
+    //  This code prints the unformatted undecoded packet (raw)
+    if (debug_flag) {
+      for (size_t i = 1; i < sizeof(rx_buffer) && rx_buffer[i] != '\0'; i++) {
+        Serial.print(rx_buffer[i], HEX);
+        Serial.print(" ");
+      }
+      Serial.println();
     }
-    Serial.println();
+    else {
+      // idenfity the packet type (what year is the car?)
+      int packetType = PacketDecoder::getPacketType(rx_buffer, sizeof(rx_buffer)); //functions are static
+      // decode the packet according to its type 
+      // This code also sends the decoded message over Serial to the base station
+      PacketDecoder::decode(rx_buffer, sizeof(rx_buffer), packetType);    
+      
+    }
+
+
 
     if (debug_flag) {
       Serial.print(F("[SX1262] RSSI:\t\t"));
