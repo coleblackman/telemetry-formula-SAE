@@ -21,8 +21,9 @@
 #define NON_CRIT_ERR1 0b0101 
 
 // other 
-#define PKT_LEN 29
+#define PKT_LEN 28
 // #define SEND_OVER_SERIAL
+// #define TEST_GPS
 // gps stuff
 TinyGPSPlus gps; // the TinyGPS++ object
 
@@ -52,9 +53,11 @@ int num_sent = 0;
  static const uint8_t SF = 11;
  static const int8_t TX_PWR = 22;
  static const uint8_t CR = 5;
- static const uint8_t SYNC_WORD = (uint8_t)0x34;
+ static const uint8_t SYNC_WORD = (uint8_t)0x27;
  static const uint16_t PREAMBLE = 8;
 
+#define TEST_PKT_LEN      5
+uint8_t test_pkt[] = {1, 2, 3, 4, 5};
 
 SX1262 radio = new Module(LORA_CS, LORA_DIO1, LORA_NRST, LORA_BUSY);
 
@@ -69,9 +72,9 @@ void insert_float(uint8_t* pkt, float num, int index){
   uint8_t byteArray[sizeof(float)];
 	memcpy(byteArray, &num, sizeof(float));
   
-  uint8_t bigend_array[4] = {byteArray[3], byteArray[2], byteArray[1], byteArray[0]};
-  for (int i = index; i < sizeof(float); i++) {
-		pkt[i] = bigend_array[i - index];
+  // uint8_t bigend_array[4] = {byteArray[3], byteArray[2], byteArray[1], byteArray[0]};
+  for (int i = index; i < (sizeof(float)+index); i++) {
+		pkt[i] = byteArray[i - index];
 	}
 }
 
@@ -79,7 +82,7 @@ void insert_float(uint8_t* pkt, float num, int index){
 void create_packet(uint8_t* pkt){
   pkt[0] = (TESTING_PKT << 4) | NO_ERR; // TYPE & ERROR 
 
-  pkt[1] = PKT_LEN - 1; //length of pkt in bytes
+  pkt[1] = PKT_LEN; //length of pkt in bytes
 
   pkt[2] = (uint8_t) gps.course.deg(); // gps heading
 
@@ -92,22 +95,51 @@ void create_packet(uint8_t* pkt){
   // temp
   insert_float(pkt, get_temp(), 7);  
 
-  pkt[11] = (uint8_t) (10 * gps.speed.mph()); // throttle input spoofed w scaled velocity
+  float cur_speed = static_cast<float>(gps.speed.mph());
+  pkt[11] = (uint8_t) (10 * cur_speed); // throttle input spoofed w scaled velocity
   
-  insert_float(pkt, 1/(10 * gps.speed.mph()), 12); // brake pressure, inverse scaled velocity
+  insert_float(pkt, 1/(10 * cur_speed), 12); // brake pressure, inverse scaled velocity
 
-  insert_float(pkt, gps.speed.mph(), 16); // wheelspeed, replaced w velocity
+  insert_float(pkt, cur_speed, 16); // wheelspeed, replaced w velocity
 
-  insert_float(pkt, gps.location.lat(), 20);
+  insert_float(pkt, static_cast<float>(gps.location.lat()), 20);
 
-  insert_float(pkt, gps.location.lng(), 24);
+  insert_float(pkt, static_cast<float>(gps.location.lng()), 24);
 }
 
-void print_pkt(uint8_t* pkt){
-  Serial.print("Packet with bytes: \n");
+void print_pkt(uint8_t* pkt, int len){
+  for (int i = 0; i < len; i++){
+    // Serial.print("Byte ");
+    // Serial.print(i);
+    // Serial.print(": ");
+    Serial.print(pkt[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.print("\n");
+}
 
-  for (int i = 0; i < PKT_LEN; i++){
-    Serial.println(pkt[i], HEX);
+void transmit_pkt(uint8_t* my_pkt, int len){
+  int state = radio.transmit(my_pkt, len);
+  // String mystr = "Penis";
+  // uint8_t mystr[] = {45, 46, 47};
+  // int state = radio.transmit(mystr, sizeof(mystr));
+
+  if (state == RADIOLIB_ERR_NONE) {// ifthe packet was successfully transmitted
+    // print measured data rate
+    Serial.print(F("Sent packet with Datarate:\t"));
+    Serial.print(radio.getDataRate());
+    Serial.println(F(" bps and bytes"));
+    print_pkt(my_pkt, len);
+  } else if (state == RADIOLIB_ERR_PACKET_TOO_LONG) {
+    // the supplied packet was longer than 256 bytes
+    Serial.println(F("too long longer than 256B"));
+  } else if (state == RADIOLIB_ERR_TX_TIMEOUT) {
+   // timeout occured while transmitting packet
+    Serial.println(F("timed out, failed to transmit your packet"));
+  } else {
+    // some other error occurred
+    Serial.print(F("failed (did not time out), code "));
+    Serial.println(state);
   }
 }
 // Note: remember to remove Serial.print() statements before going to production on the car; could fail and reset the device. This is because Serial.print() uses interrupt to read data, 
@@ -179,6 +211,54 @@ void setup() {
 }
 
 void loop() {
+  #ifdef TEST_GPS
+  if(gpsSerial.available() > 0){
+    if (gps.encode(gpsSerial.read())) {
+      if (gps.location.isValid()) {
+        Serial.print(F("- latitude: "));
+        Serial.println(gps.location.lat());
+
+        Serial.print(F("- longitude: "));
+        Serial.println(gps.location.lng());
+
+        Serial.print(F("- altitude: "));
+        if (gps.altitude.isValid())
+          Serial.println(gps.altitude.meters());
+        else
+          Serial.println(F("INVALID"));
+      } else {
+        Serial.println(F("- location: INVALID"));
+      }
+
+      Serial.print(F("- speed: "));
+      if (gps.speed.isValid()) {
+        Serial.print(gps.speed.kmph());
+        Serial.println(F(" km/h"));
+      } else {
+        Serial.println(F("INVALID"));
+      }
+
+      Serial.print(F("- GPS date&time: "));
+      if (gps.date.isValid() && gps.time.isValid()) {
+        Serial.print(gps.date.year());
+        Serial.print(F("-"));
+        Serial.print(gps.date.month());
+        Serial.print(F("-"));
+        Serial.print(gps.date.day());
+        Serial.print(F(" "));
+        Serial.print(gps.time.hour());
+        Serial.print(F(":"));
+        Serial.print(gps.time.minute());
+        Serial.print(F(":"));
+        Serial.println(gps.time.second());
+      } else {
+        Serial.println(F("INVALID"));
+      }
+
+      Serial.println();
+    }
+  }
+  #else
   // Check if there's data available on the serial port
   if (gpsSerial.available() > 0){
     if(gps.encode(gpsSerial.read())){
@@ -186,14 +266,15 @@ void loop() {
         uint8_t my_pkt[PKT_LEN];
         create_packet(my_pkt);
 
-        print_pkt(my_pkt);
+        transmit_pkt(my_pkt, PKT_LEN);
         //todo: tx packet
       } else{
         Serial.println("gps params not valid");
       }
     }
   }
-  
+  #endif
+
   if (millis() > 5000 && gps.charsProcessed() < 10)
     Serial.println(F("No GPS data received: check wiring"));
 
@@ -227,52 +308,7 @@ void loop() {
   }
   #endif
 
-  //  else if(gpsSerial.available() > 0){
-  //   if (gps.encode(gpsSerial.read())) {
-  //     if (gps.location.isValid()) {
-  //       Serial.print(F("- latitude: "));
-  //       Serial.println(gps.location.lat());
 
-  //       Serial.print(F("- longitude: "));
-  //       Serial.println(gps.location.lng());
-
-  //       Serial.print(F("- altitude: "));
-  //       if (gps.altitude.isValid())
-  //         Serial.println(gps.altitude.meters());
-  //       else
-  //         Serial.println(F("INVALID"));
-  //     } else {
-  //       Serial.println(F("- location: INVALID"));
-  //     }
-
-  //     Serial.print(F("- speed: "));
-  //     if (gps.speed.isValid()) {
-  //       Serial.print(gps.speed.kmph());
-  //       Serial.println(F(" km/h"));
-  //     } else {
-  //       Serial.println(F("INVALID"));
-  //     }
-
-  //     Serial.print(F("- GPS date&time: "));
-  //     if (gps.date.isValid() && gps.time.isValid()) {
-  //       Serial.print(gps.date.year());
-  //       Serial.print(F("-"));
-  //       Serial.print(gps.date.month());
-  //       Serial.print(F("-"));
-  //       Serial.print(gps.date.day());
-  //       Serial.print(F(" "));
-  //       Serial.print(gps.time.hour());
-  //       Serial.print(F(":"));
-  //       Serial.print(gps.time.minute());
-  //       Serial.print(F(":"));
-  //       Serial.println(gps.time.second());
-  //     } else {
-  //       Serial.println(F("INVALID"));
-  //     }
-
-  //     Serial.println();
-  //   }
-  // }
 
 
 }
