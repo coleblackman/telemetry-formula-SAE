@@ -2,12 +2,12 @@
 #define PACKET_DECODER_H
 
 #include <Arduino.h>
+#include "../include/packetTypes.h"
 
-class PacketDecoder {
-public:
-    static int getPacketType(uint8_t* data, size_t len);
-    bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack);
-    static void decode(uint8_t* data, size_t len, uint8_t packetType);
-};
+int getPacketType(const uint8_t* data, size_t len);
+
+bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack);
+
+void decode(const uint8_t* data, size_t len, uint8_t packetType);
 
 #endif
