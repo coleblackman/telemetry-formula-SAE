@@ -7,24 +7,62 @@ int PacketDecoder::getPacketType(uint8_t* data, size_t len) {
     return packetType;  
 }
 
-bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack)
-{
-    if (data == nullptr || len < sizeof(CarTestPacket)) { //   checking input validity
+bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack) {
+    if (data == nullptr || len < sizeof(CarTestPacket)) {
         return false;  
     }
 
     size_t offset = 0;
-    packet.packetType = data[offset];
-    offset += sizeof(packet.packetType);
-    // etc.
-    if (offset + sizeof(float) <= length) {  // Ensure there's enough data for a float
-        memcpy(&packet.batteryVoltage, data + offset, sizeof(float));
-        offset += sizeof(float);
-    } else {
-        return false;  // Not enough data for battery voltage
-    }
 
-    return offset == length; // Did we parse the anticipated size of data?
+    // Assuming the first byte is split into two nibbles for packetType and Error
+    pack.packetType = data[offset] >> 4;  // High nibble for packet type
+    pack.packetError = data[offset] & 0xF;  // Low nibble for error
+    offset += 1;
+
+    // Next byte for packet length
+    pack.packetLength = data[offset];
+    offset += 1;
+
+    // Next byte for steering angle
+    pack.steeringAngle = data[offset];
+    offset += 1;
+
+    // Next four bytes for battery voltage
+    if (offset + sizeof(float) > len) return false;
+    memcpy(&pack.batteryVoltage, data + offset, sizeof(float));
+    offset += sizeof(float);
+
+    // Next four bytes for battery temperature
+    if (offset + sizeof(float) > len) return false;
+    memcpy(&pack.batteryTemp, data + offset, sizeof(float));
+    offset += sizeof(float);
+
+    // Next byte for throttle input
+    pack.throttleInput = data[offset];
+    offset += 1;
+
+    // Next four bytes for brake pressure
+    if (offset + sizeof(float) > len) return false;
+    memcpy(&pack.brakePressure, data + offset, sizeof(float));
+    offset += sizeof(float);
+
+    // Next four bytes for wheel speed
+    if (offset + sizeof(float) > len) return false;
+    memcpy(&pack.wheelSpeed, data + offset, sizeof(float));
+    offset += sizeof(float);
+
+    // Next four bytes for latitude
+    if (offset + sizeof(float) > len) return false;
+    memcpy(&pack.latitude, data + offset, sizeof(float));
+    offset += sizeof(float);
+
+    // Next four bytes for longitude
+    if (offset + sizeof(float) > len) return false;
+    memcpy(&pack.longitude, data + offset, sizeof(float));
+    offset += sizeof(float);
+
+    // Verify that we have consumed all the data
+    return offset == len;
 }
 
 /*
@@ -50,14 +88,11 @@ void PacketDecoder::decode(uint8_t* data, size_t len, uint8_t packetType) {
             Serial.print("ERR: Unknown Packet Type at decoder level");
             break;
         }
-
-
         case 3: {
              //2025 car packet
             Serial.print("ERR: Unknown Packet Type at decoder level");
             break;
         }
-
         default:
             // This error should never be possible. 
             Serial.print("ERR: Unknown Packet Type at decoder level");
