@@ -8,11 +8,9 @@ int getPacketType(const uint8_t* data, size_t len) {
 }
 
 bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack) {
-    if (data == nullptr || len < sizeof(CarTestPacket)) {
-        return false;
-    }
+   
 
-    size_t offset = 0;
+    uint8_t offset = 0;
     pack.packetType = data[offset] >> 4;  // High nibble for packet type
     pack.packetError = data[offset] & 0xF;  // Low nibble for error
     offset += 1;
@@ -20,26 +18,53 @@ bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack) {
     offset += 1;
     pack.steeringAngle = data[offset];
     offset += 1;
-    if (offset + sizeof(float) > len) return false;
+    if (offset + sizeof(float) > len) {
+        Serial.print("6. Offset: ");
+        Serial.println(offset);
+        return false;
+    }
     memcpy(&pack.batteryVoltage, data + offset, sizeof(float));
-    offset += sizeof(float);
-    if (offset + sizeof(float) > len) return false;
+    offset += sizeof(float); //add4
+    if (offset + sizeof(float) > len) {
+        Serial.print("5. Offset: ");
+        Serial.println(offset);
+        return false;
+    }
     memcpy(&pack.batteryTemp, data + offset, sizeof(float));
     offset += sizeof(float);
     pack.throttleInput = data[offset];
     offset += 1;
-    if (offset + sizeof(float) > len) return false;
+    if (offset + sizeof(float) > len) {
+        Serial.print("4. Offset: ");
+        Serial.println(offset);
+        return false;
+    }
     memcpy(&pack.brakePressure, data + offset, sizeof(float));
     offset += sizeof(float);
-    if (offset + sizeof(float) > len) return false;
+    if (offset + sizeof(float) > len) {
+        Serial.print("3. Offset: ");
+        Serial.println(offset);
+        return false;
+    }
     memcpy(&pack.wheelSpeed, data + offset, sizeof(float));
     offset += sizeof(float);
-    if (offset + sizeof(float) > len) return false;
+    if (offset + sizeof(float) > len) {
+        Serial.print("2. Offset: ");
+        Serial.println(offset);
+        return false;
+    }
     memcpy(&pack.latitude, data + offset, sizeof(float));
     offset += sizeof(float);
-    if (offset + sizeof(float) > len) return false;
+    if (offset + sizeof(float) > len) {
+        Serial.print("1. Offset: ");
+        Serial.println(offset);
+        return false;
+    }
     memcpy(&pack.longitude, data + offset, sizeof(float));
     offset += sizeof(float);
+
+
+    Serial.print("made it to the end. Offset: ");
     return offset == len;
 }
 
@@ -52,10 +77,10 @@ void decode(const uint8_t* data, size_t len, uint8_t packetType) {
             } else {
                 printTestPacket(packet);
             }
-            break; // Ensure to include break to prevent fall-through
+            break;
         }
-        case 1:
-        case 2:
+        case 1: // 2024 car
+        case 2: // 2025 car
         case 3:
             Serial.print("ERR: Unknown Packet Type at decoder level");
             break;
