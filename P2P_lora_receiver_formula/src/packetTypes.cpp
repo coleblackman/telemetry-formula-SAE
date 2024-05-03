@@ -1,7 +1,7 @@
 #include "../include/packetTypes.h"
 #include <RadioLib.h>
 
-void printTestPacket(const CarTestPacket& pack) {
+void printTestPacket(CarTestPacket& pack) {
     //Serial.begin(115200); // uncomment if you get issues with Serial
     Serial.print(pack.packetType); Serial.print("\0");
     Serial.print(pack.packetError); Serial.print("\0");
@@ -16,13 +16,6 @@ void printTestPacket(const CarTestPacket& pack) {
     Serial.print(pack.longitude); Serial.print("\0");
     Serial.println();
 }
-
-void printCarPacket2024(CarPacket2024& pack) {
-    //Serial.begin(115200); // uncomment if you get issues with Serial
-    // ADD PRINT STATEMENTS FOR ADDITIONAL YEARS HERE
-}
-
-
 
 /*
 ADD NEW PACKETS FOR ADDITIONAL YEARS HERE
