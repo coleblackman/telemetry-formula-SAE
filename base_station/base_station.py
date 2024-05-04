@@ -82,85 +82,94 @@ class MainWindow(QMainWindow):
         print("Data capture stopped")
 
     # always call get methods with the decoded packet
+
+    def get_RSSI(self,decoded_packet):
+        try:
+            RSSI = str(decoded_packet[0])
+        except IndexError:
+            return "Error: Packet does not contain RSSI data"
+        return RSSI
+
     def get_packet_type(self,decoded_packet):
         try:
-            packet_type = str(decoded_packet[0])
+            packet_type = str(decoded_packet[1])
         except IndexError:
             return "Error: Packet does not contain type"
         return packet_type
 
     def get_error_status(self, decoded_packet):
         try:
-            error_status = str(decoded_packet[1])
+            error_status = str(decoded_packet[2])
         except IndexError:
             return "Error: Packet does not contain error status"
         return error_status
 
     def get_packet_length(self, decoded_packet):
         try:
-            packet_length = str(decoded_packet[2])
+            packet_length = str(decoded_packet[3])
         except IndexError:
             return "Error: Packet does not contain length"
         return packet_length
 
     def get_steering_angle(self, decoded_packet):
         try:
-            steering_angle = str(decoded_packet[3])
+            steering_angle = str(decoded_packet[4])
         except IndexError:
             return "Error: Packet does not contain steering angle"
         return steering_angle
 
     def get_battery_voltage(self, decoded_packet):
         try:
-            battery_voltage = str(decoded_packet[4])
+            battery_voltage = str(decoded_packet[5])
         except IndexError:
             return "Error: Packet does not contain battery voltage"
         return battery_voltage
 
     def get_battery_temp(self, decoded_packet):
         try:
-            battery_temp = str(decoded_packet[5])
+            battery_temp = str(decoded_packet[6])
         except IndexError:
             return "Error: Packet does not contain battery temperature"
         return battery_temp
 
     def get_throttle_input(self, decoded_packet):
         try:
-            throttle_input = str(decoded_packet[6])
+            throttle_input = str(decoded_packet[7])
         except IndexError:
             return "Error: Packet does not contain throttle input"
         return throttle_input
 
     def get_brake_pressure(self, decoded_packet):
         try:
-            brake_pressure = str(decoded_packet[7])
+            brake_pressure = str(decoded_packet[8])
         except IndexError:
             return "Error: Packet does not contain brake pressure"
         return brake_pressure
 
     def get_wheel_speed(self, decoded_packet):
         try:
-            wheel_speed = str(decoded_packet[8])
+            wheel_speed = str(decoded_packet[9])
         except IndexError:
             return "Error: Packet does not contain wheel speed"
         return wheel_speed
 
     def get_latitude(self, decoded_packet):
         try:
-            latitude = str(decoded_packet[9])
+            latitude = str(decoded_packet[10])
         except IndexError:
             return "Error: Packet does not contain latitude"
         return latitude
 
     def get_longitude(self, decoded_packet):
         try:
-            longitude = str(decoded_packet[10])
+            longitude = str(decoded_packet[11])
         except IndexError:
             return "Error: Packet does not contain longitude"
         return longitude
 
     # method that handles the packet and updates the screen
     def handle_packet(self, packet):
+        self.ui.RSSIInput.clear()
         self.ui.ErrorStatusInput.clear()
         self.ui.SteeringAngleInput.clear()
         self.ui.VoltageInput.clear()
@@ -171,6 +180,7 @@ class MainWindow(QMainWindow):
         self.ui.LatitudeInput.clear()
         self.ui.LongitudeInput.clear()
         decoded_packet = self.decode_packet(packet)
+        self.ui.RSSIInput.append(self.get_RSSI(decoded_packet))
         self.ui.ErrorStatusInput.append(self.get_error_status(decoded_packet))
         self.ui.SteeringAngleInput.append(self.get_steering_angle(decoded_packet))
         self.ui.VoltageInput.append(self.get_battery_voltage(decoded_packet))
