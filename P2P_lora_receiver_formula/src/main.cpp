@@ -165,6 +165,7 @@ if(rx_flag) {
     int16_t state = radio.readData(rx_buffer, sizeof(rx_buffer));
 
     if (state == RADIOLIB_ERR_NONE) {
+    /*
       // packet was successfully received
       Serial.println(F("[SX1262] Received packet!"));
 
@@ -177,6 +178,7 @@ if(rx_flag) {
       }
       Serial.println();
 
+
       // print RSSI (Received Signal Strength Indicator)
       Serial.print(F("[SX1262] RSSI:\t\t"));
       Serial.print(radio.getRSSI());
@@ -186,11 +188,9 @@ if(rx_flag) {
       Serial.print(F("[SX1262] SNR:\t\t"));
       Serial.print(radio.getSNR());
       Serial.println(F(" dB"));
-
+*/
       // Identify the packet type (what year is the car?)
       int packetType = getPacketType(rx_buffer, sizeof(rx_buffer)); // Calling the standalone function
-      Serial.print("FOUND A PACKET TYPE: ");
-      Serial.println(packetType);
       // Decode the packet according to its type 
       // This code also sends the decoded message over Serial to the base station
       decode(rx_buffer, sizeof(rx_buffer), packetType); // Calling the standalone function

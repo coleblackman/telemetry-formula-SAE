@@ -13,10 +13,10 @@ class SerialReader(QThread):
 
     def run(self):
 
-        tty_device = "COM10"
+        tty_device = "/dev/ttyUSB0"
         print("attempting to read serial on: ", tty_device)
         try:
-            with serial.Serial(tty_device, 9600) as serial_port:
+            with serial.Serial(tty_device, 115200) as serial_port:
                 while True:
                     packet = serial_port.readline()
                     if packet:
