@@ -120,7 +120,6 @@ void print_pkt(uint8_t* pkt, int len){
 
 void transmit_pkt(uint8_t* my_pkt, int len){
   int state = radio.transmit(my_pkt, len);
-  // String mystr = "Penis";
   // uint8_t mystr[] = {45, 46, 47};
   // int state = radio.transmit(mystr, sizeof(mystr));
 
