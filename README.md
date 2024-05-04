@@ -16,4 +16,6 @@ Examples of how telemetry data might be used to enhance the vehicle:
 
 ## Implementation
 
-- Two Heltec LoRa 32 v3 boards are used. One is connected via USB to a base station (in our case, a laptop running Ubuntu). The other is connected via USB to the car-board computer (in our case, a Jetson module). The folder P2P_lora_formula contains embedded code running on the Heltec board connected to the 
+- Two Heltec LoRa 32 v3 boards are used. One is connected via USB to a base station (in our case, a laptop running Ubuntu). The other is connected via USB to the car-board computer (in our case, a Jetson module). The folder /P2P_lora_formula contains embedded code running on the Heltec board connected to the car-board computer. /P2P_lora_receiver_formula contains embedded code running on the Heltec board connected to the base station.
+- A software interface written in QT displays the live data as it is received and has functions to save it. This code is in /base_station and runs on the base station.
+- We define an extensible packet format.
