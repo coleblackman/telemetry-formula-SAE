@@ -50,9 +50,6 @@ class MainWindow(QMainWindow):
         self.init_serial()
         self.ui.StartDataCaptureButton.clicked.connect(self.start_button_click)
         self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click)
-        data_headers = [['RSSI', 'Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
-                         'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude']]
-        write_header_to_csv(data_headers)
 
         # for testing with a hardcoded packet
         # self.timer = QTimer(self)
@@ -199,6 +196,9 @@ class MainWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    data_headers = [['RSSI', 'Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
+                     'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude']]
+    write_header_to_csv(data_headers)
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
