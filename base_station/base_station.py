@@ -50,7 +50,7 @@ class MainWindow(QMainWindow):
         self.init_serial()
         self.ui.StartDataCaptureButton.clicked.connect(self.start_button_click)
         self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click)
-        data_headers = [['Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
+        data_headers = [['RSSI', 'Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
                          'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude']]
         write_header_to_csv(data_headers)
 
@@ -191,7 +191,7 @@ class MainWindow(QMainWindow):
         self.ui.LatitudeInput.append(self.get_latitude(decoded_packet))
         self.ui.LongitudeInput.append(self.get_longitude(decoded_packet))
         if(self.collect_data):
-            data = [[self.get_packet_type(decoded_packet), self.get_error_status(decoded_packet),
+            data = [[self.get_RSSI(decoded_packet), self.get_packet_type(decoded_packet), self.get_error_status(decoded_packet),
                      self.get_packet_length(decoded_packet), self.get_steering_angle(decoded_packet),self.get_battery_voltage(decoded_packet),
                      self.get_battery_temp(decoded_packet), self.get_throttle_input(decoded_packet), self.get_brake_pressure(decoded_packet),
                      self.get_wheel_speed(decoded_packet),self.get_latitude(decoded_packet), self.get_longitude(decoded_packet)]]
