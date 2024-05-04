@@ -42,8 +42,8 @@ class MainWindow(QMainWindow):
         self.ui = telemetry.Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_serial()
-        self.ui.StartDataCaptureButton.clicked.connect(self.start_button_click())
-        self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click())
+        self.ui.StartDataCaptureButton.clicked.connect(self.start_button_click)
+        self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click)
         data_headers = [['Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
                          'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude']]
         write_to_csv(data_headers)
@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
 
     def stop_button_click(self):
         self.collect_data = False
-        print("Data capture started")
+        print("Data capture stopped")
 
     # always call get methods with the decoded packet
     def get_packet_type(self,decoded_packet):
