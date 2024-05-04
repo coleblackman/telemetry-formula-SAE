@@ -7,8 +7,14 @@ import serial
 import csv
 
 # function to write data to a csv
-def write_to_csv(data):
+def write_header_to_csv(data):
     with open('data.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        for row in data:
+            csv_writer.writerow(row)
+
+def write_to_csv(data):
+    with open('data.csv', 'a', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         for row in data:
             csv_writer.writerow(row)
@@ -46,7 +52,7 @@ class MainWindow(QMainWindow):
         self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click)
         data_headers = [['Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
                          'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude']]
-        write_to_csv(data_headers)
+        write_header_to_csv(data_headers)
 
         # for testing with a hardcoded packet
         # self.timer = QTimer(self)
