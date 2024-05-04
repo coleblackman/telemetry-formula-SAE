@@ -4,6 +4,14 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtCore import QTimer
 import telemetry
 import serial
+import csv
+
+# function to write data to a csv
+def write_to_csv(data):
+    with open('data.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        for row in data:
+            csv_writer.writerow(row)
 
 class SerialReader(QThread):
     packet_received = pyqtSignal(str)
@@ -26,19 +34,24 @@ class SerialReader(QThread):
 
 class MainWindow(QMainWindow):
 
+    collect_data = False
+
     def __init__(self):
         super().__init__()
 
         self.ui = telemetry.Ui_MainWindow()
         self.ui.setupUi(self)
         self.init_serial()
+        self.ui.StartDataCaptureButton.clicked.connect(self.start_button_click)
+        self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click)
+        data_headers = [['Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
+                         'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude']]
+        write_to_csv(data_headers)
 
         # for testing with a hardcoded packet
         # self.timer = QTimer(self)
         # self.timer.timeout.connect(self.send_packet)
         # self.timer.start(1000)
-
-
 
     def init_serial(self):
         self.serial_reader = SerialReader()
@@ -53,6 +66,14 @@ class MainWindow(QMainWindow):
     def decode_packet(self, packet):
         sections = packet.strip().split(',')
         return sections
+
+    def start_button_click(self):
+        self.collect_data = True
+        print("Data capture started!")
+
+    def stop_button_click(self):
+        self.collect_data = False
+        print("Data capture stopped")
 
     # always call get methods with the decoded packet
     def get_packet_type(self,decoded_packet):
@@ -153,6 +174,12 @@ class MainWindow(QMainWindow):
         self.ui.WheelspeedInput.append(self.get_wheel_speed(decoded_packet))
         self.ui.LatitudeInput.append(self.get_latitude(decoded_packet))
         self.ui.LongitudeInput.append(self.get_longitude(decoded_packet))
+        if(self.collect_data):
+            data = [[self.get_packet_type(decoded_packet), self.get_error_status(decoded_packet),
+                     self.get_packet_length(decoded_packet), self.get_steering_angle(decoded_packet),self.get_battery_voltage(decoded_packet),
+                     self.get_battery_temp(decoded_packet), self.get_throttle_input(decoded_packet), self.get_brake_pressure(decoded_packet),
+                     self.get_wheel_speed(decoded_packet),self.get_latitude(decoded_packet), self.get_longitude(decoded_packet)]]
+            write_to_csv(data)
 
 
 if __name__ == "__main__":
