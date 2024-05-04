@@ -191,8 +191,14 @@ if(rx_flag) {
 */
       // Identify the packet type (what year is the car?)
       int packetType = getPacketType(rx_buffer, sizeof(rx_buffer)); // Calling the standalone function
+
+      // Print RSSI so we have a sense for signal integrity over time. 
+      Serial.print(radio.getRSSI());
+      Serial.print(",");
+
       // Decode the packet according to its type 
       // This code also sends the decoded message over Serial to the base station
+      
       decode(rx_buffer, sizeof(rx_buffer), packetType); // Calling the standalone function
 
     } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
