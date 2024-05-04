@@ -27,7 +27,7 @@ class SerialReader(QThread):
 
     def run(self):
 
-        tty_device = "/dev/ttyUSB0"
+        tty_device = "/dev/ttyUSB1"
         print("attempting to read serial on: ", tty_device)
         try:
             with serial.Serial(tty_device, 115200) as serial_port:
