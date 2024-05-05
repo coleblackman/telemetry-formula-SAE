@@ -87,7 +87,7 @@ class MainWindow(QMainWindow):
             return filename
 
     def load_url(self):
-        url = QUrl.fromLocalFile("index.html")
+        url = QUrl.fromLocalFile(r"C:\formulasaeUI\index.html") #replace this with whatever file you're using
         self.ui.webview.load(url)
 
     def start_button_click(self):
