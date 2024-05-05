@@ -6,6 +6,7 @@ from PyQt5.QtCore import QUrl
 import telemetry
 import serial
 import csv
+import folium
 from datetime import datetime
 
 # function to write data to a csv
@@ -44,6 +45,9 @@ class MainWindow(QMainWindow):
 
     # value to determine if we're actively collecting data
     collect_data = False
+    # create initial cville map
+    cville_map = folium.Map(location=(38.0293, -78.4767))
+    cville_map.save("map.html")
 
     # FOR WRITING TO FILES
     # DO NOT change the filename while the data collection is running. As of right now this will mess the data collection up
@@ -87,8 +91,14 @@ class MainWindow(QMainWindow):
             return filename
 
     def load_url(self):
-        url = QUrl.fromLocalFile(r"C:\formulasaeUI\index.html") #replace this with whatever file you're using
+        url = QUrl.fromLocalFile(r"C:\telemetry-formula-SAE\telemetry-formula-SAE\base_station\map.html") # replace this with whatever file you're using
         self.ui.webview.load(url)
+
+    # add markers to map
+    def add_map_marker(self,decoded_packet):
+        if self.get_latitude(decoded_packet) != "Error: Packet does not contain latitude" and self.get_longitude(decoded_packet) != "Error: Packet does not contain longitude":
+            folium.Marker([float(self.get_latitude(decoded_packet)), float(self.get_longitude(decoded_packet))]).add_to(cville_map)
+            self.cville_map.save(r"C:\telemetry-formula-SAE\telemetry-formula-SAE\base_station\map.html")
 
     def start_button_click(self):
         self.collect_data = True
@@ -227,7 +237,9 @@ class MainWindow(QMainWindow):
                      self.get_wheel_speed(decoded_packet),self.get_latitude(decoded_packet), self.get_longitude(decoded_packet),
                      datetime.now()]]
             write_to_csv(data, self.get_filename())
-
+        self.add_map_marker(decoded_packet)
+        # use this to regenerate html file and load it into webpage
+        self.load_url()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
