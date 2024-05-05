@@ -8,14 +8,14 @@ import csv
 from datetime import datetime
 
 # function to write data to a csv
-def write_header_to_csv(data):
-    with open('data.csv', 'w', newline='') as csvfile:
+def write_header_to_csv(data, filename):
+    with open(filename, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         for row in data:
             csv_writer.writerow(row)
 
-def write_to_csv(data):
-    with open('data.csv', 'a', newline='') as csvfile:
+def write_to_csv(data,filename):
+    with open(filename, 'a', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         for row in data:
             csv_writer.writerow(row)
@@ -41,7 +41,15 @@ class SerialReader(QThread):
 
 class MainWindow(QMainWindow):
 
+    # value to determine if we're actively collecting data
     collect_data = False
+
+    # FOR WRITING TO FILES
+    # DO NOT change the filename while the data collection is running. As of right now this will mess the data collection up
+    # you should click the stop button, enter a new filename, and then click start if you want to make a new file
+    # also, only click start AFTER you have entered the full filename
+    # will maybe make this more use friendly later idk
+
 
     def __init__(self):
         super().__init__()
@@ -71,9 +79,27 @@ class MainWindow(QMainWindow):
         sections = packet.strip().split(',')
         return sections
 
+    def get_filename(self):
+        filename = self.ui.FilenameInput.toPlainText()
+        if filename != "":
+            return filename
+
     def start_button_click(self):
         self.collect_data = True
-        print("Data capture started!")
+        filename = self.get_filename()
+        # potentially add more error checking in the future, right now just checks if the filename is blank or not
+        if filename is None:
+            print("Please provide valid filename!")
+            return
+        # check it file already exists in current directory, so it is not overwritten
+        if not os.path.exists(filename):
+            data_headers = [['RSSI', 'Type', 'Error code', 'Length', 'Steering angle',
+                             'Battery voltage', 'Battery temperature', 'Throttle input', 'Brake pressure',
+                             'Wheel speed', 'Latitude', 'Longitude', 'Time']]
+            write_header_to_csv(data_headers, filename)
+            print("Data capture started!")
+        else:
+            print("Already capturing data with current file!")
 
     def stop_button_click(self):
         self.collect_data = False
@@ -188,19 +214,16 @@ class MainWindow(QMainWindow):
         self.ui.WheelspeedInput.append(self.get_wheel_speed(decoded_packet))
         self.ui.LatitudeInput.append(self.get_latitude(decoded_packet))
         self.ui.LongitudeInput.append(self.get_longitude(decoded_packet))
-        if(self.collect_data):
+        if self.collect_data:
             data = [[self.get_RSSI(decoded_packet), self.get_packet_type(decoded_packet), self.get_error_status(decoded_packet),
                      self.get_packet_length(decoded_packet), self.get_steering_angle(decoded_packet),self.get_battery_voltage(decoded_packet),
                      self.get_battery_temp(decoded_packet), self.get_throttle_input(decoded_packet), self.get_brake_pressure(decoded_packet),
                      self.get_wheel_speed(decoded_packet),self.get_latitude(decoded_packet), self.get_longitude(decoded_packet),
                      datetime.now()]]
-            write_to_csv(data)
+            write_to_csv(data, self.get_filename())
 
 
 if __name__ == "__main__":
-    data_headers = [['RSSI', 'Type', 'Error code', 'Length', 'Steering angle', 'Battery voltage', 'Battery temperature',
-                     'Throttle input', 'Brake pressure', 'Wheel speed', 'Latitude', 'Longitude', 'Time']]
-    write_header_to_csv(data_headers)
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
@@ -208,3 +231,4 @@ if __name__ == "__main__":
 
 # packet structure:
 # type, error, length, angle, voltage, temp, throttle, brake, wheelspeed, lat, long
+
