@@ -18,7 +18,7 @@ static const int BUTTON     = 0;
 /****************LoRa parameters (you need to fill these params)******************/
  static const float FREQ = 902.3;
  static const float BW = 125.;
- static const uint8_t SF = 11;
+ static const uint8_t SF = 9;
  static const int8_t TX_PWR = 20;
  static const uint8_t CR = 5;
  static const uint8_t SYNC_WORD = (uint8_t)0x27;
