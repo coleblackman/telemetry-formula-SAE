@@ -20,3 +20,12 @@ Examples of how telemetry data might be used to enhance the vehicle:
 - A software interface written in QT displays the live data as it is received and has functions to save it. This code is in /base_station and runs on the base station.
 - We define an extensible packet format.
 - Uses RadioLib
+
+
+## Testing and results
+
+![RSSI_SAE_RUN_2_SF_8](https://github.com/coleblackman/telemetry-formula-SAE/assets/20258533/cbde6f3c-046f-417a-8a8e-fa0bad2f998c)
+
+![SAE_RUN_2_SF_8](https://github.com/coleblackman/telemetry-formula-SAE/assets/20258533/99da6c06-f376-441d-b544-0374d1f86986)
+
+
