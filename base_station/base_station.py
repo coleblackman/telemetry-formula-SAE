@@ -1,3 +1,7 @@
+# COPYRIGHT SEAN MAHONEY
+# tdz9de@virginia.edu
+# idc if you don't like the way I did things sue me, this was done in 3 days for a group project
+
 import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import QThread, pyqtSignal
