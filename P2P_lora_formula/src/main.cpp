@@ -50,7 +50,7 @@ int num_sent = 0;
 
  static const float FREQ = 902.3;
  static const float BW = 125.;
- static const uint8_t SF = 11;
+ static const uint8_t SF = 9;
  static const int8_t TX_PWR = 22;
  static const uint8_t CR = 5;
  static const uint8_t SYNC_WORD = (uint8_t)0x27;
@@ -84,7 +84,7 @@ void create_packet(uint8_t* pkt){
 
   pkt[1] = PKT_LEN; //length of pkt in bytes
 
-  pkt[2] = (uint8_t) gps.course.deg(); // gps heading
+  pkt[2] = static_cast<float>(gps.course.deg()); // gps heading
 
   //battery voltage (float)... spoofed val
   pkt[3] = 0;
