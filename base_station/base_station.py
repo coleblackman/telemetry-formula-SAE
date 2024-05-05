@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QUrl
 import telemetry
 import serial
 import csv
@@ -59,6 +60,7 @@ class MainWindow(QMainWindow):
         self.init_serial()
         self.ui.StartDataCaptureButton.clicked.connect(self.start_button_click)
         self.ui.StopDataCaptureButton.clicked.connect(self.stop_button_click)
+        self.load_url()
 
         # for testing with a hardcoded packet
         # self.timer = QTimer(self)
@@ -83,6 +85,10 @@ class MainWindow(QMainWindow):
         filename = self.ui.FilenameInput.toPlainText()
         if filename != "":
             return filename
+
+    def load_url(self):
+        url = QUrl.fromLocalFile("index.html")
+        self.ui.webview.load(url)
 
     def start_button_click(self):
         self.collect_data = True

@@ -201,9 +201,6 @@ class Ui_MainWindow(object):
         font.setPointSize(20)
         self.FilenameInput.setFont(font)
         self.FilenameInput.setObjectName("FilenameInput")
-        self.webview = QtWebEngineWidgets.QWebEngineView(self.centralwidget)
-        self.webview.setGeometry(QtCore.QRect(670, 400, 341, 261))
-        self.webview.setObjectName("widget")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1193, 26))
@@ -241,4 +238,3 @@ class Ui_MainWindow(object):
         self.RSSILabel.setText(_translate("MainWindow", "RSSI:"))
         self.FilenameLabel.setText(_translate("MainWindow", "Filename:"))
         self.menuFormula_SAE_telemetry.setTitle(_translate("MainWindow", "Formula SAE telemetry"))
-from PyQt5 import QtWebEngineWidgets
