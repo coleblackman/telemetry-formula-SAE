@@ -18,7 +18,7 @@ static const int BUTTON     = 0;
 /****************LoRa parameters (you need to fill these params)******************/
  static const float FREQ = 902.3;
  static const float BW = 125.;
- static const uint8_t SF = 11;
+ static const uint8_t SF = 9;
  static const int8_t TX_PWR = 20;
  static const uint8_t CR = 5;
  static const uint8_t SYNC_WORD = (uint8_t)0x27;
@@ -165,6 +165,7 @@ if(rx_flag) {
     int16_t state = radio.readData(rx_buffer, sizeof(rx_buffer));
 
     if (state == RADIOLIB_ERR_NONE) {
+    /*
       // packet was successfully received
       Serial.println(F("[SX1262] Received packet!"));
 
@@ -177,6 +178,7 @@ if(rx_flag) {
       }
       Serial.println();
 
+
       // print RSSI (Received Signal Strength Indicator)
       Serial.print(F("[SX1262] RSSI:\t\t"));
       Serial.print(radio.getRSSI());
@@ -186,13 +188,17 @@ if(rx_flag) {
       Serial.print(F("[SX1262] SNR:\t\t"));
       Serial.print(radio.getSNR());
       Serial.println(F(" dB"));
-
+*/
       // Identify the packet type (what year is the car?)
       int packetType = getPacketType(rx_buffer, sizeof(rx_buffer)); // Calling the standalone function
-      Serial.print("FOUND A PACKET TYPE: ");
-      Serial.println(packetType);
+
+      // Print RSSI so we have a sense for signal integrity over time. 
+      Serial.print(radio.getRSSI());
+      Serial.print(",");
+
       // Decode the packet according to its type 
       // This code also sends the decoded message over Serial to the base station
+      
       decode(rx_buffer, sizeof(rx_buffer), packetType); // Calling the standalone function
 
     } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {

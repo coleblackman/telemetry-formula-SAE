@@ -19,14 +19,16 @@ bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack) {
     pack.steeringAngle = data[offset];
     offset += 1;
     if (offset + sizeof(float) > len) {
-        Serial.print("6. Offset: ");
+        Serial.print("6. Offset: ");// debugging stuff, you can remove
         Serial.println(offset);
+
+        //you do need this return statement though
         return false;
     }
-    memcpy(&pack.batteryVoltage, data + offset, sizeof(float));
+    memcpy(&pack.batteryVoltage, data + offset, sizeof(float)); // copy the data at mem addr + offset into the struct
     offset += sizeof(float); //add4
     if (offset + sizeof(float) > len) {
-        Serial.print("5. Offset: ");
+        Serial.print("5. Offset: ");// debugging stuff, you can remove
         Serial.println(offset);
         return false;
     }
@@ -35,28 +37,28 @@ bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack) {
     pack.throttleInput = data[offset];
     offset += 1;
     if (offset + sizeof(float) > len) {
-        Serial.print("4. Offset: ");
+        Serial.print("4. Offset: ");// debugging stuff, you can remove
         Serial.println(offset);
         return false;
     }
     memcpy(&pack.brakePressure, data + offset, sizeof(float));
     offset += sizeof(float);
     if (offset + sizeof(float) > len) {
-        Serial.print("3. Offset: ");
+        Serial.print("3. Offset: ");// debugging stuff, you can remove
         Serial.println(offset);
         return false;
     }
     memcpy(&pack.wheelSpeed, data + offset, sizeof(float));
     offset += sizeof(float);
     if (offset + sizeof(float) > len) {
-        Serial.print("2. Offset: ");
+        Serial.print("2. Offset: ");// debugging stuff, you can remove
         Serial.println(offset);
         return false;
     }
     memcpy(&pack.latitude, data + offset, sizeof(float));
     offset += sizeof(float);
     if (offset + sizeof(float) > len) {
-        Serial.print("1. Offset: ");
+        Serial.print("1. Offset: "); // debugging stuff, you can remove
         Serial.println(offset);
         return false;
     }
@@ -64,7 +66,6 @@ bool parseCarTestPacket(const uint8_t* data, size_t len, CarTestPacket& pack) {
     offset += sizeof(float);
 
 
-    Serial.print("made it to the end. Offset: ");
     return offset == len;
 }
 

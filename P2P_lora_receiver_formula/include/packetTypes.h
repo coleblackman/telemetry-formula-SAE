@@ -20,7 +20,8 @@ struct CarTestPacket {
 };
 void printTestPacket(CarTestPacket& pack);
 
-
-
+// Define new packet types here (2024 car)
 
 #endif
+
+

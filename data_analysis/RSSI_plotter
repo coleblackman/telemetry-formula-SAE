@@ -1,0 +1,70 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+def RSSI_plot(df_raw, title, output_filename):
+    # Ensure "RSSI" is treated as a string for proper comparison
+    df_raw["RSSI"] = df_raw["RSSI"].astype(str)
+
+    # Prepare data
+    parsed_data = []
+
+    for index, row in df_raw.iterrows():
+        if "CRC error!" in row["RSSI"]:
+            # Extract time and mark CRC error
+            timestamp_str = row["Time"]
+            parsed_data.append([np.nan, timestamp_str, True])
+        else:
+            # Extract RSSI and time
+            rssi = float(row["RSSI"])
+            timestamp_str = row["Time"]
+            parsed_data.append([rssi, timestamp_str, False])
+
+    # Convert to DataFrame
+    df = pd.DataFrame(parsed_data, columns=["RSSI", "Time", "CRC_Error"])
+    df["Time"] = pd.to_datetime(df["Time"])
+
+    # Plot RSSI vs Time
+    plt.figure(figsize=(10, 6))
+    plt.plot(df["Time"].to_numpy(), df["RSSI"].to_numpy(), label="RSSI", marker='o', linestyle='-')
+    plt.xlabel("Time")
+    plt.ylabel("RSSI (dBm)")
+    plt.title(title)
+    plt.xticks(rotation=45)
+
+    # Highlight CRC errors
+    crc_errors = df[df["CRC_Error"]]
+    min_rssi = df["RSSI"].min(skipna=True)
+    plt.scatter(crc_errors["Time"], [min_rssi] * len(crc_errors), color='red', label="CRC Error", zorder=5)
+
+    plt.legend()
+    plt.grid(visible=True, which='both', linestyle='--', linewidth=0.7)
+    plt.tight_layout()
+
+    # Save the plot as a PNG file
+    plt.savefig(output_filename, dpi=300)
+    plt.close()
+
+# List of CSV filenames to be processed
+csv_filenames = [
+    "SAE_RUN_1_CLOSE_SF_8.csv",
+    "SAE_RUN_2_SF_8.csv",
+    "SAE_RUN_3_SF_8_BEHIND_CHURCH.csv",
+    "SAE_RUN_6_SF_9_BIG_ANTENNA_SCHOOLCONTINUINTSTUDIES.csv",
+    "SAE_RUN_8_BIG_ANTENNA_SF_9_EDGEMONT.csv",
+    "RUN_7_SF_9_BIG_ANTENNA_PHYSICS_AND_OLDDORMS.csv"
+]
+
+# Process each CSV file
+for filename in csv_filenames:
+    # Read data from the CSV file
+    df_raw = pd.read_csv(filename).rename(columns=lambda x: x.strip())
+
+    # Generate the title for the plot
+    title = filename.replace(".csv", "")
+
+    # Generate the output PNG filename
+    output_filename = f"RSSI_{title}.png"
+
+    # Call the plotting function
+    RSSI_plot(df_raw, title, output_filename)
