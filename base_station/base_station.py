@@ -34,7 +34,7 @@ class SerialReader(QThread):
 
     def run(self):
 
-        tty_device = "/dev/ttyUSB1"
+        tty_device = "/dev/ttyUSB0"
         print("attempting to read serial on: ", tty_device)
         try:
             with serial.Serial(tty_device, 115200) as serial_port:
@@ -95,14 +95,14 @@ class MainWindow(QMainWindow):
             return filename
 
     def load_url(self):
-        url = QUrl.fromLocalFile(r"C:\telemetry-formula-SAE\telemetry-formula-SAE\base_station\map.html") # replace this with whatever file you're using
+        url = QUrl.fromLocalFile(r"/home/cblackman/Development/telemetry-formula-SAE/base_station/map.html") # replace this with whatever file you're using
         self.ui.webview.load(url)
 
     # add markers to map
     def add_map_marker(self,decoded_packet):
         if self.get_latitude(decoded_packet) != "Error: Packet does not contain latitude" and self.get_longitude(decoded_packet) != "Error: Packet does not contain longitude":
-            folium.Marker([float(self.get_latitude(decoded_packet)), float(self.get_longitude(decoded_packet))]).add_to(cville_map)
-            self.cville_map.save(r"C:\telemetry-formula-SAE\telemetry-formula-SAE\base_station\map.html")
+            folium.Marker([float(self.get_latitude(decoded_packet)), float(self.get_longitude(decoded_packet))]).add_to(self.cville_map)
+            self.cville_map.save(r"/home/cblackman/Development/telemetry-formula-SAE/base_station/map.html")
 
     def start_button_click(self):
         self.collect_data = True
