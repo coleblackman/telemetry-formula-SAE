@@ -6,6 +6,9 @@
 		{
 			"name": "GPSTest",
 			"path": "GPSTest"
+		},
+		{
+			"path": "base_station"
 		}
 	],
 	"settings": {}
